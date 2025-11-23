@@ -34,44 +34,68 @@
         .logo-yellow { color: #FBBC05; }
         .logo-green { color: #34A853; }
         
-        /* Result Card Animation */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
+            animation: fadeIn 0.4s ease-out forwards;
         }
 
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
         .dark .custom-scroll::-webkit-scrollbar-thumb { background-color: #4b5563; }
+        
+        /* Timer Transition */
+        #timerControlPanel {
+            transition: max-width 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+
+        /* Number Input Arrows Removal */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
     </style>
 </head>
-<body class="bg-white text-gray-800 dark:bg-darkbg dark:text-darktext min-h-screen flex flex-col items-center py-6 px-4 md:py-10 relative">
+<body class="bg-white text-gray-800 dark:bg-darkbg dark:text-darktext min-h-screen flex flex-col items-center py-4 px-4 relative overflow-x-hidden">
 
-    <!-- Top Left: Timer (Mini Version) -->
-    <div class="absolute top-4 left-4 z-50 flex items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="p-1.5 bg-blue-100 dark:bg-blue-900 rounded-full text-blue-600 dark:text-blue-300">
-            <i class="ph ph-timer text-lg"></i>
-        </div>
-        <div id="timerDisplay" class="font-mono font-bold text-gray-700 dark:text-gray-200 text-sm w-12 text-center">00:00</div>
+    <!-- Top Left: Timer (Collapsible with Custom Input) -->
+    <div class="absolute top-4 left-4 z-50 flex items-center bg-white dark:bg-gray-800 rounded-full shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <!-- Toggle Button -->
+        <button onclick="toggleTimerPanel()" class="p-2.5 text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors z-20 relative bg-white dark:bg-gray-800">
+            <i class="ph ph-clock-countdown text-2xl"></i>
+        </button>
         
-        <div class="flex gap-1 text-[10px] font-bold">
-            <button onclick="setTimer(5)" class="px-2 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">5분</button>
-            <button onclick="setTimer(10)" class="px-2 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">10분</button>
-            <button onclick="setTimer(20)" class="px-2 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">20분</button>
+        <!-- Hidden Controls -->
+        <div id="timerControlPanel" class="max-w-0 opacity-0 flex items-center gap-2 overflow-hidden pr-0 bg-white dark:bg-gray-800 h-full">
+            <div class="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+            <div id="timerDisplay" class="font-mono font-bold text-gray-700 dark:text-gray-200 text-lg w-14 text-center">00:00</div>
+            
+            <!-- Preset Buttons -->
+            <div class="flex gap-1 text-[10px] font-bold">
+                <button onclick="setTimer(5)" class="px-2 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">5분</button>
+                <button onclick="setTimer(10)" class="px-2 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">10분</button>
+            </div>
+
+            <!-- Custom Input -->
+            <div class="flex items-center gap-1 ml-1 border-l border-gray-200 dark:border-gray-700 pl-2">
+                <input type="number" id="customMinInput" class="w-8 p-1 text-[11px] border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-center focus:outline-none focus:ring-1 focus:ring-blue-500 dark:text-white" placeholder="분">
+                <button onclick="setCustomTimer()" class="px-1.5 py-1 text-[10px] bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded hover:bg-blue-200 dark:hover:bg-blue-800 font-bold whitespace-nowrap">설정</button>
+            </div>
+
+            <!-- Play Controls -->
+            <div class="flex items-center gap-1 ml-1 border-l border-gray-200 dark:border-gray-700 pl-2 pr-2">
+                <button id="timerToggleBtn" onclick="toggleTimer()" class="p-1 text-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-full transition-colors" title="시작/정지">
+                    <i id="timerIcon" class="ph ph-play-fill text-xl"></i>
+                </button>
+                <button onclick="resetTimer()" class="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-gray-700 rounded-full transition-colors" title="리셋">
+                    <i class="ph ph-arrow-counter-clockwise text-xl"></i>
+                </button>
+            </div>
         </div>
-
-        <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"></div>
-
-        <button id="timerToggleBtn" onclick="toggleTimer()" class="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-full transition-colors" title="시작/정지">
-            <i id="timerIcon" class="ph ph-play-fill text-lg"></i>
-        </button>
-        <button onclick="resetTimer()" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-gray-700 rounded-full transition-colors" title="리셋">
-            <i class="ph ph-arrow-counter-clockwise text-lg"></i>
-        </button>
     </div>
 
     <!-- Top Right: Dark Mode & Favorites -->
@@ -86,55 +110,57 @@
         </button>
     </div>
 
-    <!-- Header Logo -->
-    <div class="flex flex-col items-center mt-12 mb-4 md:mt-16 md:mb-6 select-none z-10">
-        <div class="logo-text mb-2 text-4xl md:text-5xl lg:text-6xl transition-all duration-300">
+    <!-- Header Logo (Reduced Margins) -->
+    <div class="flex flex-col items-center mt-12 mb-2 md:mt-14 md:mb-4 select-none z-10 shrink-0">
+        <div class="logo-text text-4xl md:text-5xl transition-all duration-300">
             <span class="logo-blue">오</span><span class="logo-red">늘</span><span class="logo-yellow">의</span>
             <span class="logo-blue">글</span><span class="logo-green">감</span>
         </div>
-        <p class="text-gray-500 dark:text-gray-400 text-sm md:text-base text-center break-keep">학생들을 위한 아침 글쓰기 도우미</p>
+        <p class="text-gray-500 dark:text-gray-400 text-xs md:text-sm mt-1">학생들을 위한 아침 글쓰기 도우미</p>
     </div>
 
-    <!-- 1. Result Area (Moved UP) -->
-    <!-- 초기 상태는 max-w-3xl로 유지하되, JS에서 동적으로 클래스가 변경됩니다 -->
-    <div id="resultArea" class="w-full max-w-3xl min-h-[150px] mb-8 grid gap-4 grid-cols-1 z-10 transition-all mx-auto">
-        <!-- Placeholder State -->
-        <div class="flex flex-col items-center justify-center h-full p-8 text-center border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50/50 dark:bg-gray-800/50">
-            <i class="ph ph-pencil-simple-slash text-4xl text-gray-300 dark:text-gray-600 mb-2"></i>
-            <p class="text-gray-400 dark:text-gray-500">아래 <span class="text-blue-500 font-bold">글감 검색</span> 버튼을 눌러주세요.</p>
+    <!-- 1. Result Area (FIXED HEIGHT CONTAINER - REDUCED) -->
+    <!-- h-[340px]로 줄여서 버튼이 위로 올라오도록 조정 -->
+    <div id="resultContainer" class="w-full max-w-6xl h-[340px] mb-2 z-10 mx-auto flex items-center justify-center p-2">
+        <div id="resultArea" class="w-full h-full grid gap-4 place-content-center transition-all">
+            <!-- Placeholder State -->
+            <div class="flex flex-col items-center justify-center h-full w-full border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50/50 dark:bg-gray-800/50 p-6 text-center max-w-xl mx-auto">
+                <i class="ph ph-pencil-simple-slash text-3xl text-gray-300 dark:text-gray-600 mb-2"></i>
+                <p class="text-gray-400 dark:text-gray-500 text-sm">아래 <span class="text-blue-500 font-bold">글감 검색</span> 버튼을 눌러주세요.</p>
+            </div>
         </div>
     </div>
 
-    <!-- 2. Controls Area (Moved DOWN) -->
-    <div class="w-full max-w-2xl bg-white dark:bg-darkcard p-5 md:p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 z-20">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <!-- 2. Controls Area (Fixed Position Relative to Layout) -->
+    <div class="w-full max-w-2xl bg-white dark:bg-darkcard p-5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg z-20 shrink-0">
+        <div class="grid grid-cols-2 gap-4 mb-4">
             <!-- Category Selection -->
             <div class="flex flex-col">
-                <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 ml-1">주제 유형</label>
-                <select id="categorySelect" class="w-full p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer appearance-none">
+                <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 ml-1">주제 유형</label>
+                <select id="categorySelect" class="w-full p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                     <option value="all">🎲 모든 주제 (랜덤)</option>
-                    <option value="imagination">💭 풍부한 상상력 (만약에?)</option>
+                    <option value="imagination">💭 풍부한 상상력</option>
                     <option value="school">🏫 학교와 친구들</option>
-                    <option value="self">🪞 나를 돌아보기 (성찰)</option>
+                    <option value="self">🪞 나를 돌아보기</option>
                     <option value="daily">🌱 소소한 일상</option>
-                    <option value="debate">⚖️ 찬반 토론 / 가치관</option>
+                    <option value="debate">⚖️ 찬반 토론</option>
                 </select>
             </div>
 
             <!-- Count Selection -->
             <div class="flex flex-col">
-                <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 ml-1">생성 개수</label>
-                <select id="countSelect" class="w-full p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer appearance-none">
-                    <option value="1" selected>1개만 보기</option>
-                    <option value="3">3개 골라보기</option>
-                    <option value="5">5개 골라보기</option>
+                <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 ml-1">생성 개수</label>
+                <select id="countSelect" class="w-full p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <option value="1" selected>1개 (집중)</option>
+                    <option value="3">3개 (선택)</option>
+                    <option value="5">5개 (다양하게)</option>
                 </select>
             </div>
         </div>
 
         <!-- Generate Button -->
         <div class="flex justify-center">
-            <button onclick="generatePrompts()" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-16 rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 shadow-md text-lg active:scale-95 flex items-center justify-center gap-2">
+            <button onclick="generatePrompts()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 shadow-md text-lg active:scale-95 flex items-center justify-center gap-2">
                 <i class="ph ph-magnifying-glass font-bold"></i> 글감 검색
             </button>
         </div>
@@ -157,14 +183,14 @@
     </div>
     
     <div id="overlay" onclick="toggleFavorites()" class="fixed inset-0 bg-black/50 z-40 hidden backdrop-blur-sm transition-opacity"></div>
-
     <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-white dark:text-gray-900 text-white px-6 py-3 rounded-full shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none z-50 text-sm flex items-center gap-2">
         <i class="ph ph-check-circle text-lg"></i> <span id="toastMsg">복사되었습니다!</span>
     </div>
 
     <script>
-        // --- 1. Massive Data Definitions (Approaching 300 items) ---
+        // Data (Full list maintained internally)
         const promptData = [
+            // ... (기존 300개 데이터 유지) ...
             // 1. 상상 (Imagination)
             { type: "imagination", text: "50년 전 과거로 되돌아 간다면 가장 먼저 무엇을 할까요?" },
             { type: "imagination", text: "동물들과 대화할 수 있는 능력이 생긴다면, 우리 집 강아지에게 무슨 말을 걸까요?" },
@@ -433,7 +459,6 @@
         ];
 
         // --- 2. Core Logic ---
-
         function shuffle(array) {
             let currentIndex = array.length, randomIndex;
             while (currentIndex != 0) {
@@ -463,8 +488,7 @@
             showToast("글감이 복사되었습니다!");
         }
 
-        // --- 3. Generation Logic ---
-
+        // --- 3. Generation Logic (Updated Layout) ---
         function generatePrompts() {
             const category = document.getElementById('categorySelect').value;
             const count = parseInt(document.getElementById('countSelect').value);
@@ -480,32 +504,27 @@
             }
             
             if (filtered.length === 0) {
-                // Layout reset for error message
-                resultArea.className = 'w-full max-w-3xl min-h-[150px] mb-8 grid gap-4 grid-cols-1 z-10 transition-all mx-auto';
+                resultArea.className = 'w-full h-full grid place-content-center';
                 resultArea.innerHTML = '<div class="text-center text-gray-500">해당 유형의 글감이 부족합니다.</div>';
                 return;
             }
 
-            // Shuffle and Select
             const shuffled = shuffle([...filtered]);
             const selected = shuffled.slice(0, count);
 
-            // --- Dynamic Layout Logic (핵심 수정 부분) ---
-            // 초기화: 공통 클래스 설정
-            resultArea.className = 'mb-8 grid gap-4 z-10 transition-all mx-auto';
+            // --- Dynamic Class Assignment ---
+            // 높이 340px 박스 안에 꽉 차게 들어가는 로직
+            resultArea.className = 'w-full h-full grid gap-4 place-content-center px-4';
 
             if (count === 1) {
-                // 1개일 때: 좁고 집중된 레이아웃 (기존 유지)
-                resultArea.classList.add('w-full', 'max-w-3xl', 'grid-cols-1');
+                resultArea.classList.add('grid-cols-1');
             } else if (count === 3) {
-                // 3개일 때: 너비를 넓히고 3열 배치
-                resultArea.classList.add('w-full', 'max-w-6xl', 'grid-cols-1', 'md:grid-cols-3');
+                resultArea.classList.add('grid-cols-1', 'md:grid-cols-3');
             } else if (count === 5) {
-                // 5개일 때: 화면을 거의 꽉 채우고 5열 배치 (반응형: 모바일 2열 -> 태블릿 3열 -> PC 5열)
-                resultArea.classList.add('w-full', 'max-w-[95%]', 'grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-5');
+                // 모바일 2열, PC 5열 / 높이 꽉 채우기
+                resultArea.classList.add('grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-5');
             }
 
-            // Render Logic
             selected.forEach((item, index) => {
                 let catLabel = '';
                 let catColor = '';
@@ -518,51 +537,62 @@
                     default: catLabel = '기타'; catColor = 'bg-gray-100 text-gray-800';
                 }
 
-                // 카드 스타일 동적 조정 (개수에 따라 패딩과 폰트 크기 조절)
-                const cardPadding = count === 1 ? 'p-8 min-h-[200px]' : 'p-5 min-h-[180px]'; // 1개일 때 더 크고 여유롭게
-                const titleSize = count === 1 ? 'text-2xl md:text-3xl' : 'text-base md:text-lg'; // 1개일 때 폰트 크게
-
+                // 카드 스타일 동적 조정 (작은 폰트 - 높이 줄임에 따라 조정)
+                // 340px container height => 1 item: h-[300px], 3 items: h-[250px], 5 items: h-[160px]
+                const cardSizeClass = count === 1 ? 'p-8 h-[300px]' : (count === 3 ? 'p-5 h-[250px]' : 'p-3 h-[150px]');
+                const titleSize = count === 1 ? 'text-2xl md:text-3xl' : (count === 3 ? 'text-lg' : 'text-xs md:text-sm font-bold');
+                
                 const card = document.createElement('div');
-                // h-full과 flex-col을 추가하여 카드의 높이를 맞추고 내용을 정렬
-                card.className = `result-card animate-fade-in bg-white dark:bg-darkcard border border-gray-200 dark:border-gray-700 rounded-xl ${cardPadding} relative group transition-all duration-300 hover:shadow-lg dark:hover:shadow-gray-900 flex flex-col justify-between`;
+                card.className = `result-card animate-fade-in bg-white dark:bg-darkcard border border-gray-200 dark:border-gray-700 rounded-xl ${cardSizeClass} relative group transition-all duration-300 hover:shadow-lg dark:hover:shadow-gray-900 flex flex-col justify-between overflow-hidden`;
                 card.style.animationDelay = `${index * 0.1}s`;
-
-                // Check if favorite
+                
+                // Check fav
                 const isFav = isFavorite(item.text);
                 const favIconClass = isFav ? 'ph-star-fill text-yellow-400' : 'ph-star text-gray-300';
 
                 card.innerHTML = `
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs font-bold px-2 py-1 rounded ${catColor}">${catLabel}</span>
-                        <div class="flex gap-2">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${catColor}">${catLabel}</span>
+                        <div class="flex gap-1">
                              <button onclick="toggleFavoriteItem(this, '${item.text.replace(/'/g, "\\'")}', '${item.type}')" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors" title="보관함에 저장">
-                                <i class="ph ${favIconClass} text-xl"></i>
+                                <i class="ph ${favIconClass} text-lg"></i>
                             </button>
                         </div>
                     </div>
-                    <div onclick="copyText('${item.text.replace(/'/g, "\\'")}')" class="cursor-pointer flex-1 flex items-center">
-                        <h3 class="${titleSize} font-medium text-gray-800 dark:text-gray-100 leading-snug break-keep hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-full text-center md:text-left">${item.text}</h3>
+                    <div onclick="copyText('${item.text.replace(/'/g, "\\'")}')" class="cursor-pointer flex-1 flex items-center justify-center overflow-y-auto custom-scroll">
+                        <h3 class="${titleSize} font-medium text-gray-800 dark:text-gray-100 leading-snug break-keep hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-full text-center">${item.text}</h3>
                     </div>
-                    <p class="text-xs text-gray-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity text-center md:text-left">클릭해서 복사</p>
+                    ${count === 1 ? '<p class="text-xs text-gray-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity text-center">클릭해서 복사</p>' : ''}
                 `;
                 resultArea.appendChild(card);
             });
         }
 
-        // --- 4. Dark Mode Logic ---
+        // --- 4. Timer Logic (Updated) ---
+        function toggleTimerPanel() {
+            const panel = document.getElementById('timerControlPanel');
+            const isHidden = panel.classList.contains('max-w-0');
+            
+            if (isHidden) {
+                // Show - width increased to accommodate input
+                panel.classList.remove('max-w-0', 'opacity-0');
+                panel.classList.add('max-w-[500px]', 'opacity-100', 'pl-2');
+            } else {
+                // Hide
+                panel.classList.add('max-w-0', 'opacity-0');
+                panel.classList.remove('max-w-[500px]', 'opacity-100', 'pl-2');
+            }
+        }
+
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark');
             const isDark = document.documentElement.classList.contains('dark');
             localStorage.setItem('darkMode', isDark);
         }
-
-        // Init Dark Mode
-        if (localStorage.getItem('darkMode') === 'true' || 
-            (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        if (localStorage.getItem('darkMode') === 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         }
 
-        // --- 5. Timer Logic (Simplified Mini Version) ---
         let timerInterval;
         let timeLeft = 0;
         let isTimerRunning = false;
@@ -580,14 +610,28 @@
             updateTimerDisplay();
         }
 
+        function setCustomTimer() {
+            const input = document.getElementById('customMinInput');
+            const minutes = parseInt(input.value);
+            if (minutes && minutes > 0) {
+                setTimer(minutes);
+                input.value = ''; // Clear input
+            } else {
+                alert('시간(분)을 숫자로 입력해주세요.');
+            }
+        }
+
         function toggleTimer() {
             const btnIcon = document.getElementById('timerIcon');
             if (isTimerRunning) {
                 stopTimer();
             } else {
-                if (timeLeft <= 0) timeLeft = 300; // Default 5 min
+                if (timeLeft <= 0) {
+                    alert('시간을 먼저 설정해주세요.');
+                    return;
+                }
                 isTimerRunning = true;
-                btnIcon.className = "ph ph-pause-fill text-lg";
+                btnIcon.className = "ph ph-pause-fill text-xl";
                 
                 timerInterval = setInterval(() => {
                     timeLeft--;
@@ -603,7 +647,7 @@
         function stopTimer() {
             clearInterval(timerInterval);
             isTimerRunning = false;
-            document.getElementById('timerIcon').className = "ph ph-play-fill text-lg";
+            document.getElementById('timerIcon').className = "ph ph-play-fill text-xl";
         }
 
         function resetTimer() {
@@ -612,7 +656,7 @@
             updateTimerDisplay();
         }
 
-        // --- 6. Favorites Logic ---
+        // --- 5. Favorites ---
         function getFavorites() {
             const stored = localStorage.getItem('writingPromptsFavs');
             return stored ? JSON.parse(stored) : [];
@@ -625,29 +669,21 @@
         }
 
         function isFavorite(text) {
-            const favs = getFavorites();
-            return favs.some(f => f.text === text);
+            return getFavorites().some(f => f.text === text);
         }
 
         function toggleFavoriteItem(btn, text, type) {
             let favs = getFavorites();
             const index = favs.findIndex(f => f.text === text);
             const icon = btn.querySelector('i');
-
             if (index > -1) {
-                // Remove
                 favs.splice(index, 1);
-                icon.className = 'ph ph-star text-gray-300 text-xl';
+                icon.className = 'ph ph-star text-gray-300 text-lg';
                 showToast("보관함에서 삭제되었습니다.");
             } else {
-                // Add
                 favs.push({ text, type, date: new Date().toLocaleDateString() });
-                icon.className = 'ph ph-star-fill text-yellow-400 text-xl';
+                icon.className = 'ph ph-star-fill text-yellow-400 text-lg';
                 showToast("보관함에 저장되었습니다!");
-                
-                // Animation
-                icon.classList.add('scale-125');
-                setTimeout(() => icon.classList.remove('scale-125'), 200);
             }
             saveFavorites(favs);
         }
@@ -663,21 +699,17 @@
             const favs = getFavorites();
             const list = document.getElementById('favList');
             list.innerHTML = '';
-
             if (favs.length === 0) {
-                list.innerHTML = '<div class="text-center text-gray-400 text-sm mt-10">보관된 글감이 없습니다.<br>별표를 눌러 저장해보세요.</div>';
+                list.innerHTML = '<div class="text-center text-gray-400 text-sm mt-10">보관된 글감이 없습니다.</div>';
                 return;
             }
-
             favs.forEach((item, idx) => {
                 const el = document.createElement('div');
                 el.className = 'bg-white dark:bg-gray-700 p-3 rounded-lg shadow-sm border border-gray-100 dark:border-gray-600 relative';
                 el.innerHTML = `
                     <div class="text-xs text-blue-500 mb-1">${item.date}</div>
                     <div class="text-sm text-gray-800 dark:text-gray-100 mb-2">${item.text}</div>
-                    <button onclick="removeFavoriteAtIndex(${idx})" class="absolute top-2 right-2 text-gray-300 hover:text-red-400">
-                        <i class="ph ph-trash"></i>
-                    </button>
+                    <button onclick="removeFavoriteAtIndex(${idx})" class="absolute top-2 right-2 text-gray-300 hover:text-red-400"><i class="ph ph-trash"></i></button>
                     <button onclick="copyText('${item.text.replace(/'/g, "\\'")}')" class="text-xs bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-500">복사</button>
                 `;
                 list.appendChild(el);
@@ -688,17 +720,12 @@
             let favs = getFavorites();
             favs.splice(index, 1);
             saveFavorites(favs);
-            // Re-check visible stars
-            const generatedButtons = document.querySelectorAll('.result-card button');
-            // This is a naive refresh, ideally we re-render but that's heavy. 
-            // In this simple app, user likely won't mind.
         }
 
         function toggleFavorites() {
             const drawer = document.getElementById('favDrawer');
             const overlay = document.getElementById('overlay');
             const isOpen = !drawer.classList.contains('translate-x-full');
-
             if (isOpen) {
                 drawer.classList.add('translate-x-full');
                 overlay.classList.add('hidden');
@@ -716,7 +743,6 @@
                 renderFavorites();
             }
         }
-
         updateFavCount();
     </script>
 </body>
