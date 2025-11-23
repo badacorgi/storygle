@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 글감 - 아침 글쓰기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .logo-text {
+            /* font-size: 3rem; 삭제됨 - Tailwind 클래스로 제어 */
+            font-weight: 700;
+            letter-spacing: -0.05em;
+        }
+        .logo-blue { color: #4285F4; }
+        .logo-red { color: #EA4335; }
+        .logo-yellow { color: #FBBC05; }
+        .logo-green { color: #34A853; }
+        
+        .search-box {
+            box-shadow: 0 1px 6px rgba(32,33,36,.28);
+            border-color: rgba(223,225,229,0);
+        }
+        .search-box:hover {
+            box-shadow: 0 1px 6px rgba(32,33,36,.28);
+            border-color: rgba(223,225,229,0);
+        }
+        
+        .result-card {
+            transition: all 0.3s ease;
+        }
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        /* Fade in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-800 min-h-screen flex flex-col items-center py-6 px-4 md:py-10">
+
+    <!-- Header / Logo Area -->
+    <div class="flex flex-col items-center mt-6 mb-6 md:mt-10 md:mb-8 select-none">
+        <div class="logo-text mb-2 text-4xl md:text-5xl lg:text-6xl transition-all duration-300">
+            <span class="logo-blue">오</span><span class="logo-red">늘</span><span class="logo-yellow">의</span>
+            <span class="logo-blue">글</span><span class="logo-green">감</span>
+        </div>
+        <p class="text-gray-500 text-sm md:text-base text-center break-keep">학생들을 위한 아침 글쓰기 주제 생성기</p>
+    </div>
+
+    <!-- Controls Area -->
+    <div class="w-full max-w-2xl bg-white p-5 md:p-8 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <!-- Category Selection -->
+            <div class="flex flex-col">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 ml-1">주제 유형</label>
+                <select id="categorySelect" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors cursor-pointer appearance-none text-gray-700">
+                    <option value="all">🎲 모든 주제 (랜덤)</option>
+                    <option value="imagination">💭 풍부한 상상력 (만약에?)</option>
+                    <option value="school">🏫 학교와 친구들</option>
+                    <option value="self">🪞 나를 돌아보기 (성찰)</option>
+                    <option value="daily">🌱 소소한 일상</option>
+                    <option value="debate">⚖️ 찬반 토론 / 가치관</option>
+                </select>
+            </div>
+
+            <!-- Count Selection -->
+            <div class="flex flex-col">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 ml-1">생성 개수</label>
+                <select id="countSelect" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors cursor-pointer appearance-none text-gray-700">
+                    <option value="1" selected>1개만 보기</option>
+                    <option value="3">3개 골라보기</option>
+                    <option value="5">5개 골라보기</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Generate Button -->
+        <div class="flex justify-center gap-3">
+            <button onclick="generatePrompts()" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-12 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-md text-lg active:scale-95">
+                글감 검색
+            </button>
+        </div>
+    </div>
+
+    <!-- Output Area -->
+    <div id="resultArea" class="w-full max-w-3xl mt-8 md:mt-12 grid gap-4 grid-cols-1">
+        <!-- Results will appear here -->
+        <div class="text-center text-gray-400 mt-10 text-sm md:text-base">
+            위 버튼을 눌러 글감을 생성해보세요.<br>
+            참신하고 재미있는 주제가 기다리고 있습니다.
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none z-50 text-sm">
+        글감이 복사되었습니다!
+    </div>
+
+    <script>
+        // Data: 300+ Writing Prompts
+        const promptData = [
+            // 1. 상상력 (Imagination) - 60개
+            { type: "imagination", text: "50년 전 과거로 되돌아 간다면 가장 먼저 무엇을 할까요?" },
+            { type: "imagination", text: "동물들과 대화할 수 있는 능력이 생긴다면, 우리 집 강아지에게 무슨 말을 걸까요?" },
+            { type: "imagination", text: "내일 아침 눈을 떴는데, 내가 10년 후의 어른이 되어 있다면?" },
+            { type: "imagination", text: "투명 인간이 되어 하루를 보낼 수 있다면 어디를 가고 싶나요?" },
+            { type: "imagination", text: "내가 만약 학교 교장 선생님이 된다면, 어떤 교칙을 새로 만들고 싶나요?" },
+            { type: "imagination", text: "무인도에 딱 3가지 물건만 가져갈 수 있다면 무엇을 챙길까요?" },
+            { type: "imagination", text: "내가 만약 영화 속 주인공이 된다면, 어떤 장르의 어떤 주인공이 되고 싶나요?" },
+            { type: "imagination", text: "하늘을 날 수 있는 능력이 생긴다면 가장 먼저 날아가고 싶은 곳은?" },
+            { type: "imagination", text: "시간을 멈출 수 있는 리모컨이 있다면 언제 버튼을 누르고 싶나요?" },
+            { type: "imagination", text: "외계인이 나에게 지구를 소개해 달라고 한다면, 어디를 가장 먼저 보여줄까요?" },
+            { type: "imagination", text: "내가 만약 100억 부자가 된다면 가장 먼저 사고 싶은 것은?" },
+            { type: "imagination", text: "나에게만 보이는 요정이 나타나 소원을 묻는다면?" },
+            { type: "imagination", text: "하루 동안 다른 사람의 몸으로 살 수 있다면 누구로 살고 싶나요?" },
+            { type: "imagination", text: "좀비 바이러스가 퍼진 학교, 나는 어떻게 생존할 것인가?" },
+            { type: "imagination", text: "내가 만든 로봇이 나를 공격한다면?" },
+            { type: "imagination", text: "말하는 나무가 나에게 비밀을 알려준다면 무슨 내용일까요?" },
+            { type: "imagination", text: "내가 만약 해리포터 세계관 속의 마법사라면 기숙사는 어디일까요?" },
+            { type: "imagination", text: "순간이동 능력이 생긴다면 지금 당장 가고 싶은 곳은?" },
+            { type: "imagination", text: "내 방의 인형들이 밤마다 살아 움직인다면?" },
+            { type: "imagination", text: "내가 만약 올림픽 금메달리스트라면 어떤 종목일까요?" },
+            { type: "imagination", text: "하루아침에 내가 유명한 연예인이 되어 있다면?" },
+            { type: "imagination", text: "바닷속 깊은 곳에 숨겨진 왕국을 발견한다면?" },
+            { type: "imagination", text: "내가 만약 라면 회사 사장이라면 어떤 신메뉴를 개발할까요?" },
+            { type: "imagination", text: "거짓말을 하면 코가 길어지는 병에 걸렸다면?" },
+            { type: "imagination", text: "내 그림자가 나에게 말을 건다면?" },
+            { type: "imagination", text: "일주일 동안 인터넷과 스마트폰이 사라진 세상, 나는 무엇을 하며 보낼까?" },
+            { type: "imagination", text: "내가 만약 조선시대에 태어났다면 어떤 직업을 가졌을까?" },
+            { type: "imagination", text: "내가 먹으면 몸이 작아지는 물약을 마셨다면?" },
+            { type: "imagination", text: "구름 위를 걸을 수 있다면 그 위에서 무엇을 하고 싶나요?" },
+            { type: "imagination", text: "내가 만약 게임 캐릭터라면 나의 필살기는?" },
+            { type: "imagination", text: "30년 후의 나에게 영상 편지를 보낸다면?" },
+            { type: "imagination", text: "나에게 1시간의 절대적인 자유시간이 주어진다면?" },
+            { type: "imagination", text: "내가 만약 새라면 어떤 새가 되어 어디로 날아가고 싶나요?" },
+            { type: "imagination", text: "세상의 모든 색이 사라지고 흑백이 된다면?" },
+            { type: "imagination", text: "내가 만약 역사 속 인물이 된다면 누구를 만나고 싶나요?" },
+            { type: "imagination", text: "내 목소리가 다른 사람의 목소리로 바뀐다면 누구의 목소리를 원하나요?" },
+            { type: "imagination", text: "내가 만약 사물로 다시 태어난다면 무엇이 되고 싶나요?" },
+            { type: "imagination", text: "하늘에서 음식이 내린다면 어떤 음식이 내리면 좋을까요?" },
+            { type: "imagination", text: "내가 만약 유튜브 크리에이터라면 어떤 콘텐츠를 만들까요?" },
+            { type: "imagination", text: "나에게 텔레파시 능력이 생긴다면 누구의 마음을 읽고 싶나요?" },
+            { type: "imagination", text: "아무도 없는 교실에 갇혔을 때 나의 대처 방법은?" },
+            { type: "imagination", text: "내가 만약 슈퍼히어로 팀의 리더라면 팀원들을 어떻게 모을까요?" },
+            { type: "imagination", text: "공룡이 멸종하지 않고 지금까지 살아있다면?" },
+            { type: "imagination", text: "내가 쓴 일기가 현실이 된다면 오늘 무엇을 쓸까요?" },
+            { type: "imagination", text: "지구가 네모나게 변한다면 어떤 일이 벌어질까요?" },
+            { type: "imagination", text: "내가 만약 날씨를 조종할 수 있다면?" },
+            { type: "imagination", text: "거울 속의 내가 나와 가위바위보를 해서 이긴다면?" },
+            { type: "imagination", text: "내가 만약 탐정이라면 해결하고 싶은 미스터리 사건은?" },
+            { type: "imagination", text: "꿈속에서 깬 줄 알았는데 아직 꿈이라면?" },
+            { type: "imagination", text: "내가 만약 외계 행성의 왕이라면 지구인들에게 어떤 메시지를 보낼까요?" },
+
+            // 2. 학교와 친구들 (School) - 60개
+            { type: "school", text: "우리 반에서 가장 웃긴 친구를 소개해 주세요." },
+            { type: "school", text: "가장 좋아하는 급식 메뉴는 무엇인가요? 그 이유는?" },
+            { type: "school", text: "내가 선생님이 된다면 절대 하지 않을 말은?" },
+            { type: "school", text: "쉬는 시간에 주로 무엇을 하며 보내나요?" },
+            { type: "school", text: "우리 학교에서 내가 가장 좋아하는 장소는 어디인가요?" },
+            { type: "school", text: "짝꿍에게 바라는 점 한 가지가 있다면?" },
+            { type: "school", text: "지금까지 들었던 수업 중 가장 기억에 남는 수업은?" },
+            { type: "school", text: "숙제가 없는 학교, 시험이 없는 학교 중 하나만 선택한다면?" },
+            { type: "school", text: "친구와 다투고 나서 화해하는 나만의 방법은?" },
+            { type: "school", text: "우리 반 교실 배치를 내 마음대로 바꿀 수 있다면?" },
+            { type: "school", text: "전학을 가게 된다면 친구들에게 어떤 말을 남기고 싶나요?" },
+            { type: "school", text: "내가 만약 체육부장이 된다면 어떤 운동을 하자고 할까요?" },
+            { type: "school", text: "학교 매점에 꼭 생겼으면 하는 간식은?" },
+            { type: "school", text: "선생님 몰래 했던 가장 짜릿한 장난은?" },
+            { type: "school", text: "가장 듣기 싫은 잔소리는 무엇인가요?" },
+            { type: "school", text: "우리 반 친구 칭찬 릴레이: 바로 옆자리 친구의 장점 3가지는?" },
+            { type: "school", text: "학교 가는 길에 겪었던 재미있는 일이나 신기한 일은?" },
+            { type: "school", text: "체육대회 때 가장 하고 싶은 종목은?" },
+            { type: "school", text: "현장체험학습(소풍)으로 가고 싶은 장소는?" },
+            { type: "school", text: "급식으로 랍스터가 나온다면?" },
+            { type: "school", text: "내가 만약 학생회장 선거에 나간다면 어떤 공약을 걸까요?" },
+            { type: "school", text: "수업 시간에 너무 졸릴 때 잠을 깨는 나만의 방법은?" },
+            { type: "school", text: "학교 괴담이나 전설을 알고 있나요?" },
+            { type: "school", text: "가장 존경하는 선생님은 누구이며, 그 이유는?" },
+            { type: "school", text: "방학이 일주일 남았다면 무엇을 하며 보내고 싶나요?" },
+            { type: "school", text: "청소 당번을 피하는 나만의 노하우가 있다면?" },
+            { type: "school", text: "우리 학교 교복(또는 체육복) 디자인을 바꿀 수 있다면?" },
+            { type: "school", text: "점심시간이 2시간으로 늘어난다면 무엇을 할까요?" },
+            { type: "school", text: "친구의 비밀을 우연히 알게 되었을 때 나의 대처법은?" },
+            { type: "school", text: "가장 좋아하는 과목과 그 이유는?" },
+            { type: "school", text: "가장 싫어하는 과목과, 그 과목이 세상에서 사라져야 하는 이유는?" },
+            { type: "school", text: "학교에 반려동물을 데려올 수 있다면 누구를 데려오고 싶나요?" },
+            { type: "school", text: "시험 성적표를 받았을 때의 기분을 색깔로 표현한다면?" },
+            { type: "school", text: "나를 가장 힘들게 하는 학교 규칙은?" },
+            { type: "school", text: "친구들에게 인기 있는 비결은 무엇이라고 생각하나요?" },
+            { type: "school", text: "졸업하기 전에 꼭 해보고 싶은 일은?" },
+            { type: "school", text: "내 짝꿍이 외계인이라는 의심이 든다면?" },
+            { type: "school", text: "학교 도서관에서 발견한 보물 같은 책이 있다면?" },
+            { type: "school", text: "비 오는 날의 등굣길 풍경 묘사하기" },
+            { type: "school", text: "친구 생일에 주고 싶은 선물은?" },
+            { type: "school", text: "우리 반 단체 티셔츠 문구를 정한다면?" },
+            { type: "school", text: "학예회 때 무대에서 장기자랑을 한다면 무엇을 보여줄까요?" },
+            { type: "school", text: "학교 뒷산에 보물이 묻혀 있다는 소문을 듣는다면?" },
+            { type: "school", text: "선생님과 영혼이 바뀐다면 첫 교시에 무엇을 할까요?" },
+            { type: "school", text: "내가 만약 급식 영양사 선생님이라면?" },
+            { type: "school", text: "학교에 수영장이 생긴다면?" },
+            { type: "school", text: "방과 후에 가장 즐거운 시간은 언제인가요?" },
+            { type: "school", text: "우리 반만의 특별한 기념일을 만든다면?" },
+            { type: "school", text: "새 학기 첫날, 교실 문을 열 때의 기분은?" },
+
+            // 3. 나를 돌아보기 (Self) - 60개
+            { type: "self", text: "나의 가장 큰 장점(강점) 한 가지는 무엇인가요?" },
+            { type: "self", text: "지금 가장 듣고 싶은 칭찬이나 위로의 말은?" },
+            { type: "self", text: "내가 가장 행복했던 순간 베스트 3는?" },
+            { type: "self", text: "내가 생각하는 '멋진 어른'이란 어떤 사람인가요?" },
+            { type: "self", text: "최근에 가장 많이 웃었던 일은 무엇인가요?" },
+            { type: "self", text: "나를 색깔로 표현한다면 무슨 색일까요? 그 이유는?" },
+            { type: "self", text: "내가 고치고 싶은 나만의 나쁜 습관은?" },
+            { type: "self", text: "1년 전의 나에게 해주고 싶은 말은?" },
+            { type: "self", text: "내가 가장 두려워하는 것은 무엇인가요?" },
+            { type: "self", text: "내가 가장 아끼는 보물 1호는 무엇인가요?" },
+            { type: "self", text: "나만의 스트레스 해소법은?" },
+            { type: "self", text: "내 인생의 배경음악(BGM)을 고른다면 어떤 노래일까요?" },
+            { type: "self", text: "내가 가장 좋아하는 계절과 그 이유는?" },
+            { type: "self", text: "나의 묘비명에 적고 싶은 한 문장은?" },
+            { type: "self", text: "지금 당장 떠나고 싶은 여행지는?" },
+            { type: "self", text: "나를 동물에 비유한다면 어떤 동물일까요?" },
+            { type: "self", text: "최근에 본 영화나 책 중 가장 감명 깊었던 것은?" },
+            { type: "self", text: "내가 가장 존경하는 인물은?" },
+            { type: "self", text: "일기장에만 적어두고 싶은 나만의 비밀은?" },
+            { type: "self", text: "나에게 '가족'이란 어떤 의미인가요?" },
+            { type: "self", text: "주말에 아무런 계획이 없다면 무엇을 하며 보내고 싶나요?" },
+            { type: "self", text: "내가 가장 잘하는 요리는?" },
+            { type: "self", text: "나의 별명은 무엇이며, 그 별명이 마음에 드나요?" },
+            { type: "self", text: "잠들기 전에 주로 하는 생각은?" },
+            { type: "self", text: "내가 세상에서 가장 싫어하는 냄새는?" },
+            { type: "self", text: "나의 잠버릇은?" },
+            { type: "self", text: "내가 생각하는 나의 외모 점수는?" },
+            { type: "self", text: "돈으로 살 수 없는 가장 소중한 것은 무엇일까요?" },
+            { type: "self", text: "내가 만약 책을 쓴다면 어떤 제목의 책을 쓸까요?" },
+            { type: "self", text: "나의 인생 영화는 무엇인가요?" },
+            { type: "self", text: "내가 가장 듣기 좋아하는 소리는? (빗소리, 파도소리 등)" },
+            { type: "self", text: "나에게 100만원이 생긴다면 누구를 위해 쓰고 싶나요?" },
+            { type: "self", text: "거울을 볼 때마다 드는 생각은?" },
+            { type: "self", text: "내가 가장 후회하는 일은 무엇인가요?" },
+            { type: "self", text: "나의 꿈(장래희망)은 어떻게 변해왔나요?" },
+            { type: "self", text: "내가 생각하는 진정한 친구의 조건은?" },
+            { type: "self", text: "어른이 되면 가장 먼저 해보고 싶은 것은?" },
+            { type: "self", text: "나의 보물지도를 그린다면 어디에 무엇을 숨길까요?" },
+            { type: "self", text: "내가 가진 능력 중 남들에게 자랑하고 싶은 사소한 능력은?" },
+            { type: "self", text: "가장 최근에 울었던 기억은?" },
+            { type: "self", text: "나에게 용기가 필요한 순간은 언제인가요?" },
+            { type: "self", text: "내가 생각하는 '행복'의 정의는?" },
+            { type: "self", text: "10년 뒤 나의 명함을 만든다면 어떻게 생겼을까요?" },
+            { type: "self", text: "나를 세 단어로 표현해 보세요." },
+            { type: "self", text: "가장 기억에 남는 생일 파티는?" },
+            { type: "self", text: "내가 가장 좋아하는 냄새는?" },
+            { type: "self", text: "내가 싫어하는 음식과 그 이유는?" },
+            { type: "self", text: "나만의 소확행(소소하지만 확실한 행복)은?" },
+            { type: "self", text: "타임머신을 타고 미래의 나를 만난다면 첫 마디는?" },
+
+            // 4. 일상 (Daily) - 60개
+            { type: "daily", text: "오늘 아침에 눈을 뜨자마자 든 생각은?" },
+            { type: "daily", text: "우리 집 냉장고를 열면 가장 먼저 보이는 것은?" },
+            { type: "daily", text: "비 오는 날 창밖을 보며 무슨 생각을 하나요?" },
+            { type: "daily", text: "가장 좋아하는 간식과 그 이유는?" },
+            { type: "daily", text: "스마트폰에서 가장 많이 사용하는 앱은?" },
+            { type: "daily", text: "우리 동네에서 내가 가장 좋아하는 장소는?" },
+            { type: "daily", text: "가족들과 함께 저녁을 먹으며 나누고 싶은 이야기는?" },
+            { type: "daily", text: "최근에 산 물건 중 가장 마음에 드는 것은?" },
+            { type: "daily", text: "길을 걷다가 돈을 줍는다면?" },
+            { type: "daily", text: "엘리베이터가 고장 나서 20층까지 걸어 올라가야 한다면?" },
+            { type: "daily", text: "버스나 지하철에서 자리를 양보해 본 경험이 있나요?" },
+            { type: "daily", text: "편의점에 가면 꼭 사는 것은?" },
+            { type: "daily", text: "주말 아침, 늦잠을 자고 일어났을 때의 기분은?" },
+            { type: "daily", text: "내 방 책상 서랍 속에 무엇이 들어있나요?" },
+            { type: "daily", text: "가장 최근에 찍은 사진은 무엇인가요?" },
+            { type: "daily", text: "유튜브 알고리즘이 나에게 추천해 주는 영상들은 주로 어떤 것들인가요?" },
+            { type: "daily", text: "오늘 날씨를 날씨 캐스터처럼 설명해 보세요." },
+            { type: "daily", text: "내가 좋아하는 옷 스타일은?" },
+            { type: "daily", text: "집에 혼자 있을 때 주로 무엇을 하나요?" },
+            { type: "daily", text: "목욕탕(사우나)에 가면 가장 먼저 하는 일은?" },
+            { type: "daily", text: "가장 좋아하는 라면 종류와 끓이는 나만의 비법은?" },
+            { type: "daily", text: "택배 기사님이 벨을 누를 때의 기분은?" },
+            { type: "daily", text: "잃어버린 물건을 찾다가 엉뚱한 물건을 발견한 적이 있나요?" },
+            { type: "daily", text: "오늘 점심 메뉴가 무엇이었으면 좋겠나요?" },
+            { type: "daily", text: "가장 좋아하는 계절의 냄새는?" },
+            { type: "daily", text: "밤하늘의 별을 본 적이 언제인가요?" },
+            { type: "daily", text: "노래방에 가면 꼭 부르는 18번 곡은?" },
+            { type: "daily", text: "가족들과 함께 갔던 여행 중 가장 기억에 남는 곳은?" },
+            { type: "daily", text: "마트 시식 코너에서 가장 좋아하는 음식은?" },
+            { type: "daily", text: "치킨은 양념 vs 후라이드? 그 이유는?" },
+            { type: "daily", text: "붕어빵은 머리부터 vs 꼬리부터? 그 이유는?" },
+            { type: "daily", text: "비 오는 날엔 파전? 아니면 다른 음식?" },
+            { type: "daily", text: "내 방 창문으로 보이는 풍경 묘사하기" },
+            { type: "daily", text: "가장 좋아하는 아이스크림 맛은?" },
+            { type: "daily", text: "신발 끈이 풀렸을 때 나의 대처법은?" },
+            { type: "daily", text: "길고양이와 마주쳤을 때 나의 반응은?" },
+            { type: "daily", text: "한여름 더위를 피하는 나만의 방법은?" },
+            { type: "daily", text: "겨울철 귤을 까먹을 때의 즐거움에 대해 써보세요." },
+            { type: "daily", text: "자전거를 타고 달릴 때의 기분은?" },
+            { type: "daily", text: "가장 아끼는 신발은?" },
+            { type: "daily", text: "머리를 자르고 나서 마음에 들지 않았던 적이 있나요?" },
+            { type: "daily", text: "매일 아침 알람 소리를 들을 때 드는 생각은?" },
+            { type: "daily", text: "가족 몰래 야식을 먹어본 적이 있나요?" },
+            { type: "daily", text: "텔레비전 리모컨 주도권은 우리 집에서 누구에게 있나요?" },
+            { type: "daily", text: "가장 좋아하는 공휴일은 언제인가요?" },
+            { type: "daily", text: "약속 시간에 늦었을 때 핑계를 대본 적이 있나요?" },
+            { type: "daily", text: "편지를 손으로 써본 지 얼마나 되었나요?" },
+            { type: "daily", text: "오늘 하루를 한 단어로 요약한다면?" },
+
+            // 5. 찬반 토론 / 가치관 (Debate/Values) - 60개
+            { type: "debate", text: "선의의 거짓말은 필요한가, 필요하지 않은가?" },
+            { type: "debate", text: "동물원, 동물을 보호하는 곳인가 가두는 곳인가?" },
+            { type: "debate", text: "초등학생(학생)의 화장, 허용해야 할까?" },
+            { type: "debate", text: "학교 매점, 건강한 간식만 팔아야 할까?" },
+            { type: "debate", text: "인공지능(AI) 로봇이 인간을 대체하는 것은 좋은 일일까?" },
+            { type: "debate", text: "유튜브 시청 시간 제한, 필요한가?" },
+            { type: "debate", text: "학교 교복, 자율화해야 할까?" },
+            { type: "debate", text: "돈이 많으면 무조건 행복할까?" },
+            { type: "debate", text: "실패는 성공의 어머니라는 말에 동의하나요?" },
+            { type: "debate", text: "숙제는 학습에 도움이 될까, 스트레스만 줄까?" },
+            { type: "debate", text: "인터넷 실명제(댓글 실명제)는 필요한가?" },
+            { type: "debate", text: "채식 급식 의무화, 찬성하나요?" },
+            { type: "debate", text: "노키즈존(어린이 출입 금지 구역), 정당한가?" },
+            { type: "debate", text: "과정이 중요한가, 결과가 중요한가?" },
+            { type: "debate", text: "외계인은 존재할까?" },
+            { type: "debate", text: "cctv는 사생활 침해인가, 안전을 위한 필수인가?" },
+            { type: "debate", text: "가장 중요한 과목은 국영수일까, 예체능일까?" },
+            { type: "debate", text: "영원히 살 수 있다면 행복할까?" },
+            { type: "debate", text: "일회용품 사용을 법으로 강력하게 금지해야 할까?" },
+            { type: "debate", text: "학교 청소는 학생이 해야 할까, 청소 전문가가 해야 할까?" },
+            { type: "debate", text: "반려동물 보유세(세금)를 내야 할까?" },
+            { type: "debate", text: "게임은 스포츠인가, 단순한 오락인가?" },
+            { type: "debate", text: "착한 사람은 손해를 볼까?" },
+            { type: "debate", text: "공부를 잘하는 것과 인성이 좋은 것 중 무엇이 더 중요한가?" },
+            { type: "debate", text: "타투(문신)에 대한 나의 생각은?" },
+            { type: "debate", text: "남녀공학이 좋을까, 남중/여중이 좋을까?" },
+            { type: "debate", text: "1등만 기억하는 세상, 어떻게 생각하나요?" },
+            { type: "debate", text: "사형 제도는 유지되어야 할까?" },
+            { type: "debate", text: "유전자 조작 식품(GMO), 안전할까?" },
+            { type: "debate", text: "초능력이 생긴다면 축복일까, 저주일까?" },
+            { type: "debate", text: "친구 사이에 비밀은 없어야 할까?" },
+            { type: "debate", text: "우주 개발에 막대한 돈을 쓰는 것은 낭비일까?" },
+            { type: "debate", text: "원자력 발전소는 필요한가?" },
+            { type: "debate", text: "심부름 값을 받는 것은 정당한가?" },
+            { type: "debate", text: "학원 숙제는 법으로 제한해야 할까?" },
+            { type: "debate", text: "연예인의 사생활은 보호받아야 할까?" },
+            { type: "debate", text: "학교에서 스마트폰을 걷어가야 할까?" },
+            { type: "debate", text: "경쟁은 발전을 위해 꼭 필요한가?" },
+            { type: "debate", text: "통일은 반드시 해야 할까?" },
+            { type: "debate", text: "재능(재미) vs 노력, 성공에 더 중요한 것은?" },
+            { type: "debate", text: "역사를 잊은 민족에게 미래는 없다. 이 말의 의미는?" },
+            { type: "debate", text: "욕설(비속어) 사용, 습관일까 문화일까?" },
+            { type: "debate", text: "어린이날은 필요한가?" },
+            { type: "debate", text: "자율주행 자동차를 믿고 탈 수 있을까?" },
+            { type: "debate", text: "기부(봉사)는 의무일까, 선택일까?" },
+            { type: "debate", text: "수업 시간 40분 vs 50분, 어느 것이 적당할까?" },
+            { type: "debate", text: "사랑 vs 우정, 하나만 선택해야 한다면?" }
+        ];
+
+        // Function to shuffle array
+        function shuffle(array) {
+            let currentIndex = array.length,  randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        // Function to copy text
+        function copyText(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+            }, 2000);
+        }
+
+        // Generate "I'm Feeling Lucky" (Just 1 random from all)
+        function generateRandomOne() {
+            document.getElementById('countSelect').value = "1";
+            document.getElementById('categorySelect').value = "all";
+            generatePrompts();
+        }
+
+        // Main Generation Function
+        function generatePrompts() {
+            const category = document.getElementById('categorySelect').value;
+            const count = parseInt(document.getElementById('countSelect').value);
+            const resultArea = document.getElementById('resultArea');
+            
+            // Filter
+            let filtered = [];
+            if (category === 'all') {
+                filtered = promptData;
+            } else {
+                filtered = promptData.filter(item => item.type === category);
+            }
+
+            // Shuffle and slice
+            const shuffled = shuffle([...filtered]); // Copy to avoid mutating original
+            const selected = shuffled.slice(0, count);
+
+            // Render
+            resultArea.innerHTML = '';
+            
+            if (selected.length === 0) {
+                resultArea.innerHTML = '<div class="text-center text-gray-500">해당 유형의 글감이 부족합니다.</div>';
+                return;
+            }
+
+            selected.forEach((item, index) => {
+                // Category Label logic
+                let catLabel = '';
+                let catColor = '';
+                switch(item.type) {
+                    case 'imagination': catLabel = '상상'; catColor = 'bg-purple-100 text-purple-800'; break;
+                    case 'school': catLabel = '학교'; catColor = 'bg-blue-100 text-blue-800'; break;
+                    case 'self': catLabel = '성찰'; catColor = 'bg-green-100 text-green-800'; break;
+                    case 'daily': catLabel = '일상'; catColor = 'bg-orange-100 text-orange-800'; break;
+                    case 'debate': catLabel = '토론'; catColor = 'bg-red-100 text-red-800'; break;
+                    default: catLabel = '기타'; catColor = 'bg-gray-100 text-gray-800';
+                }
+
+                const card = document.createElement('div');
+                card.className = `result-card animate-fade-in bg-white border border-gray-200 rounded-xl p-6 cursor-pointer relative group`;
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.onclick = () => copyText(item.text);
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold px-2 py-1 rounded ${catColor}">${catLabel}</span>
+                        <span class="text-xs text-gray-400 group-hover:text-blue-500 transition-colors">클릭해서 복사</span>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-medium text-gray-800 leading-snug break-keep">${item.text}</h3>
+                `;
+                resultArea.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
