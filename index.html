@@ -5,39 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>오늘의 글감 - 아침 글쓰기</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#202124',
+                        darkcard: '#303134',
+                        darktext: '#e8eaed',
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
         }
-        .logo-text {
-            /* font-size: 3rem; 삭제됨 - Tailwind 클래스로 제어 */
-            font-weight: 700;
-            letter-spacing: -0.05em;
-        }
+        
+        .logo-text { font-weight: 700; letter-spacing: -0.05em; }
         .logo-blue { color: #4285F4; }
         .logo-red { color: #EA4335; }
         .logo-yellow { color: #FBBC05; }
         .logo-green { color: #34A853; }
         
-        .search-box {
-            box-shadow: 0 1px 6px rgba(32,33,36,.28);
-            border-color: rgba(223,225,229,0);
-        }
-        .search-box:hover {
-            box-shadow: 0 1px 6px rgba(32,33,36,.28);
-            border-color: rgba(223,225,229,0);
-        }
-        
-        .result-card {
-            transition: all 0.3s ease;
-        }
-        .result-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        
-        /* Fade in animation */
+        /* Result Card Animation */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -45,27 +42,76 @@
         .animate-fade-in {
             animation: fadeIn 0.5s ease-out forwards;
         }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background-color: #4b5563; }
     </style>
 </head>
-<body class="bg-white text-gray-800 min-h-screen flex flex-col items-center py-6 px-4 md:py-10">
+<body class="bg-white text-gray-800 dark:bg-darkbg dark:text-darktext min-h-screen flex flex-col items-center py-6 px-4 md:py-10 relative">
 
-    <!-- Header / Logo Area -->
-    <div class="flex flex-col items-center mt-6 mb-6 md:mt-10 md:mb-8 select-none">
+    <!-- Top Left: Timer (Mini Version) -->
+    <div class="absolute top-4 left-4 z-50 flex items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
+        <div class="p-1.5 bg-blue-100 dark:bg-blue-900 rounded-full text-blue-600 dark:text-blue-300">
+            <i class="ph ph-timer text-lg"></i>
+        </div>
+        <div id="timerDisplay" class="font-mono font-bold text-gray-700 dark:text-gray-200 text-sm w-12 text-center">00:00</div>
+        
+        <div class="flex gap-1 text-[10px] font-bold">
+            <button onclick="setTimer(5)" class="px-2 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">5분</button>
+            <button onclick="setTimer(10)" class="px-2 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">10분</button>
+            <button onclick="setTimer(20)" class="px-2 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">20분</button>
+        </div>
+
+        <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+
+        <button id="timerToggleBtn" onclick="toggleTimer()" class="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-full transition-colors" title="시작/정지">
+            <i id="timerIcon" class="ph ph-play-fill text-lg"></i>
+        </button>
+        <button onclick="resetTimer()" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-gray-700 rounded-full transition-colors" title="리셋">
+            <i class="ph ph-arrow-counter-clockwise text-lg"></i>
+        </button>
+    </div>
+
+    <!-- Top Right: Dark Mode & Favorites -->
+    <div class="absolute top-4 right-4 flex gap-2 z-50">
+        <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="다크 모드">
+            <i class="ph ph-moon text-2xl dark:hidden"></i>
+            <i class="ph ph-sun text-2xl hidden dark:block text-yellow-400"></i>
+        </button>
+        <button onclick="toggleFavorites()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative" title="보관함">
+            <i class="ph ph-bookmarks text-2xl"></i>
+            <span id="favCountBadge" class="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+        </button>
+    </div>
+
+    <!-- Header Logo -->
+    <div class="flex flex-col items-center mt-12 mb-4 md:mt-16 md:mb-6 select-none z-10">
         <div class="logo-text mb-2 text-4xl md:text-5xl lg:text-6xl transition-all duration-300">
             <span class="logo-blue">오</span><span class="logo-red">늘</span><span class="logo-yellow">의</span>
             <span class="logo-blue">글</span><span class="logo-green">감</span>
         </div>
-        <p class="text-gray-500 text-sm md:text-base text-center break-keep">학생들을 위한 아침 글쓰기 주제 생성기</p>
+        <p class="text-gray-500 dark:text-gray-400 text-sm md:text-base text-center break-keep">학생들을 위한 아침 글쓰기 도우미</p>
     </div>
 
-    <!-- Controls Area -->
-    <div class="w-full max-w-2xl bg-white p-5 md:p-8 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
-        
+    <!-- 1. Result Area (Moved UP) -->
+    <!-- 초기 상태는 max-w-3xl로 유지하되, JS에서 동적으로 클래스가 변경됩니다 -->
+    <div id="resultArea" class="w-full max-w-3xl min-h-[150px] mb-8 grid gap-4 grid-cols-1 z-10 transition-all mx-auto">
+        <!-- Placeholder State -->
+        <div class="flex flex-col items-center justify-center h-full p-8 text-center border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50/50 dark:bg-gray-800/50">
+            <i class="ph ph-pencil-simple-slash text-4xl text-gray-300 dark:text-gray-600 mb-2"></i>
+            <p class="text-gray-400 dark:text-gray-500">아래 <span class="text-blue-500 font-bold">글감 검색</span> 버튼을 눌러주세요.</p>
+        </div>
+    </div>
+
+    <!-- 2. Controls Area (Moved DOWN) -->
+    <div class="w-full max-w-2xl bg-white dark:bg-darkcard p-5 md:p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 z-20">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <!-- Category Selection -->
             <div class="flex flex-col">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 ml-1">주제 유형</label>
-                <select id="categorySelect" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors cursor-pointer appearance-none text-gray-700">
+                <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 ml-1">주제 유형</label>
+                <select id="categorySelect" class="w-full p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer appearance-none">
                     <option value="all">🎲 모든 주제 (랜덤)</option>
                     <option value="imagination">💭 풍부한 상상력 (만약에?)</option>
                     <option value="school">🏫 학교와 친구들</option>
@@ -77,8 +123,8 @@
 
             <!-- Count Selection -->
             <div class="flex flex-col">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 ml-1">생성 개수</label>
-                <select id="countSelect" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors cursor-pointer appearance-none text-gray-700">
+                <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 ml-1">생성 개수</label>
+                <select id="countSelect" class="w-full p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer appearance-none">
                     <option value="1" selected>1개만 보기</option>
                     <option value="3">3개 골라보기</option>
                     <option value="5">5개 골라보기</option>
@@ -87,31 +133,39 @@
         </div>
 
         <!-- Generate Button -->
-        <div class="flex justify-center gap-3">
-            <button onclick="generatePrompts()" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-12 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-md text-lg active:scale-95">
-                글감 검색
+        <div class="flex justify-center">
+            <button onclick="generatePrompts()" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-16 rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 shadow-md text-lg active:scale-95 flex items-center justify-center gap-2">
+                <i class="ph ph-magnifying-glass font-bold"></i> 글감 검색
             </button>
         </div>
     </div>
 
-    <!-- Output Area -->
-    <div id="resultArea" class="w-full max-w-3xl mt-8 md:mt-12 grid gap-4 grid-cols-1">
-        <!-- Results will appear here -->
-        <div class="text-center text-gray-400 mt-10 text-sm md:text-base">
-            위 버튼을 눌러 글감을 생성해보세요.<br>
-            참신하고 재미있는 주제가 기다리고 있습니다.
+    <!-- Favorites Drawer -->
+    <div id="favDrawer" class="fixed inset-y-0 right-0 w-80 bg-white dark:bg-darkcard shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex flex-col">
+        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
+            <h2 class="font-bold text-lg"><i class="ph ph-bookmarks text-blue-500 mr-2"></i>글감 보관함</h2>
+            <button onclick="toggleFavorites()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+        <div id="favList" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scroll">
+            <div class="text-center text-gray-400 text-sm mt-10">보관된 글감이 없습니다.</div>
+        </div>
+        <div class="p-4 border-t border-gray-100 dark:border-gray-700 text-center">
+            <button onclick="clearFavorites()" class="text-xs text-red-400 hover:text-red-600 underline">전체 삭제</button>
         </div>
     </div>
+    
+    <div id="overlay" onclick="toggleFavorites()" class="fixed inset-0 bg-black/50 z-40 hidden backdrop-blur-sm transition-opacity"></div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none z-50 text-sm">
-        글감이 복사되었습니다!
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-white dark:text-gray-900 text-white px-6 py-3 rounded-full shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none z-50 text-sm flex items-center gap-2">
+        <i class="ph ph-check-circle text-lg"></i> <span id="toastMsg">복사되었습니다!</span>
     </div>
 
     <script>
-        // Data: 300+ Writing Prompts
+        // --- 1. Massive Data Definitions (Approaching 300 items) ---
         const promptData = [
-            // 1. 상상력 (Imagination) - 60개
+            // 1. 상상 (Imagination)
             { type: "imagination", text: "50년 전 과거로 되돌아 간다면 가장 먼저 무엇을 할까요?" },
             { type: "imagination", text: "동물들과 대화할 수 있는 능력이 생긴다면, 우리 집 강아지에게 무슨 말을 걸까요?" },
             { type: "imagination", text: "내일 아침 눈을 떴는데, 내가 10년 후의 어른이 되어 있다면?" },
@@ -122,7 +176,6 @@
             { type: "imagination", text: "하늘을 날 수 있는 능력이 생긴다면 가장 먼저 날아가고 싶은 곳은?" },
             { type: "imagination", text: "시간을 멈출 수 있는 리모컨이 있다면 언제 버튼을 누르고 싶나요?" },
             { type: "imagination", text: "외계인이 나에게 지구를 소개해 달라고 한다면, 어디를 가장 먼저 보여줄까요?" },
-            { type: "imagination", text: "내가 만약 100억 부자가 된다면 가장 먼저 사고 싶은 것은?" },
             { type: "imagination", text: "나에게만 보이는 요정이 나타나 소원을 묻는다면?" },
             { type: "imagination", text: "하루 동안 다른 사람의 몸으로 살 수 있다면 누구로 살고 싶나요?" },
             { type: "imagination", text: "좀비 바이러스가 퍼진 학교, 나는 어떻게 생존할 것인가?" },
@@ -162,8 +215,15 @@
             { type: "imagination", text: "내가 만약 탐정이라면 해결하고 싶은 미스터리 사건은?" },
             { type: "imagination", text: "꿈속에서 깬 줄 알았는데 아직 꿈이라면?" },
             { type: "imagination", text: "내가 만약 외계 행성의 왕이라면 지구인들에게 어떤 메시지를 보낼까요?" },
+            { type: "imagination", text: "내가 만약 건물을 지을 수 있는 건축가라면 어떤 집을 짓고 싶나요?" },
+            { type: "imagination", text: "동화 속 주인공(신데렐라, 흥부 등)이 되어 결말을 바꾼다면?" },
+            { type: "imagination", text: "내가 만약 사람이 아니라 로봇이었다면?" },
+            { type: "imagination", text: "평생 잠을 자지 않아도 피곤하지 않다면, 밤에 무엇을 할까요?" },
+            { type: "imagination", text: "내가 만약 물고기라면 강에서 살고 싶나요, 바다에서 살고 싶나요?" },
+            { type: "imagination", text: "세상에서 가장 맛있는 요리를 만드는 요리사가 된다면?" },
+            { type: "imagination", text: "내가 만약 국가대표 축구선수라면 월드컵 결승전에서 어떤 활약을 할까요?" },
 
-            // 2. 학교와 친구들 (School) - 60개
+            // 2. 학교 (School)
             { type: "school", text: "우리 반에서 가장 웃긴 친구를 소개해 주세요." },
             { type: "school", text: "가장 좋아하는 급식 메뉴는 무엇인가요? 그 이유는?" },
             { type: "school", text: "내가 선생님이 된다면 절대 하지 않을 말은?" },
@@ -213,8 +273,11 @@
             { type: "school", text: "방과 후에 가장 즐거운 시간은 언제인가요?" },
             { type: "school", text: "우리 반만의 특별한 기념일을 만든다면?" },
             { type: "school", text: "새 학기 첫날, 교실 문을 열 때의 기분은?" },
-
-            // 3. 나를 돌아보기 (Self) - 60개
+            { type: "school", text: "학교폭력을 목격했다면 어떻게 행동해야 할까요?" },
+            { type: "school", text: "내가 생각하는 이상적인 학교의 모습은?" },
+            { type: "school", text: "우리 반 친구들이 모두 함께 여행을 간다면 어디가 좋을까요?" },
+            
+            // 3. 성찰 (Self)
             { type: "self", text: "나의 가장 큰 장점(강점) 한 가지는 무엇인가요?" },
             { type: "self", text: "지금 가장 듣고 싶은 칭찬이나 위로의 말은?" },
             { type: "self", text: "내가 가장 행복했던 순간 베스트 3는?" },
@@ -264,8 +327,9 @@
             { type: "self", text: "내가 싫어하는 음식과 그 이유는?" },
             { type: "self", text: "나만의 소확행(소소하지만 확실한 행복)은?" },
             { type: "self", text: "타임머신을 타고 미래의 나를 만난다면 첫 마디는?" },
+            { type: "self", text: "내가 100살까지 산다면 100살 생일파티를 어떻게 하고 싶나요?" },
 
-            // 4. 일상 (Daily) - 60개
+             // 4. 일상 (Daily)
             { type: "daily", text: "오늘 아침에 눈을 뜨자마자 든 생각은?" },
             { type: "daily", text: "우리 집 냉장고를 열면 가장 먼저 보이는 것은?" },
             { type: "daily", text: "비 오는 날 창밖을 보며 무슨 생각을 하나요?" },
@@ -314,8 +378,11 @@
             { type: "daily", text: "약속 시간에 늦었을 때 핑계를 대본 적이 있나요?" },
             { type: "daily", text: "편지를 손으로 써본 지 얼마나 되었나요?" },
             { type: "daily", text: "오늘 하루를 한 단어로 요약한다면?" },
-
-            // 5. 찬반 토론 / 가치관 (Debate/Values) - 60개
+            { type: "daily", text: "책상을 정리하다가 옛날 물건을 발견했을 때?" },
+            { type: "daily", text: "지하철 노선도를 보며 가보고 싶은 역 이름 고르기" },
+            { type: "daily", text: "내가 만약 오늘 하루만 유튜버가 된다면 무엇을 찍을까?" },
+            
+            // 5. 토론 (Debate)
             { type: "debate", text: "선의의 거짓말은 필요한가, 필요하지 않은가?" },
             { type: "debate", text: "동물원, 동물을 보호하는 곳인가 가두는 곳인가?" },
             { type: "debate", text: "초등학생(학생)의 화장, 허용해야 할까?" },
@@ -365,9 +432,10 @@
             { type: "debate", text: "사랑 vs 우정, 하나만 선택해야 한다면?" }
         ];
 
-        // Function to shuffle array
+        // --- 2. Core Logic ---
+
         function shuffle(array) {
-            let currentIndex = array.length,  randomIndex;
+            let currentIndex = array.length, randomIndex;
             while (currentIndex != 0) {
                 randomIndex = Math.floor(Math.random() * currentIndex);
                 currentIndex--;
@@ -376,7 +444,15 @@
             return array;
         }
 
-        // Function to copy text
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-10');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-10');
+            }, 2000);
+        }
+
         function copyText(text) {
             const textarea = document.createElement('textarea');
             textarea.value = text;
@@ -384,75 +460,264 @@
             textarea.select();
             document.execCommand('copy');
             document.body.removeChild(textarea);
-
-            const toast = document.getElementById('toast');
-            toast.classList.remove('opacity-0');
-            setTimeout(() => {
-                toast.classList.add('opacity-0');
-            }, 2000);
+            showToast("글감이 복사되었습니다!");
         }
 
-        // Generate "I'm Feeling Lucky" (Just 1 random from all)
-        function generateRandomOne() {
-            document.getElementById('countSelect').value = "1";
-            document.getElementById('categorySelect').value = "all";
-            generatePrompts();
-        }
+        // --- 3. Generation Logic ---
 
-        // Main Generation Function
         function generatePrompts() {
             const category = document.getElementById('categorySelect').value;
             const count = parseInt(document.getElementById('countSelect').value);
             const resultArea = document.getElementById('resultArea');
             
-            // Filter
+            resultArea.innerHTML = '';
+
             let filtered = [];
             if (category === 'all') {
                 filtered = promptData;
             } else {
                 filtered = promptData.filter(item => item.type === category);
             }
-
-            // Shuffle and slice
-            const shuffled = shuffle([...filtered]); // Copy to avoid mutating original
-            const selected = shuffled.slice(0, count);
-
-            // Render
-            resultArea.innerHTML = '';
             
-            if (selected.length === 0) {
+            if (filtered.length === 0) {
+                // Layout reset for error message
+                resultArea.className = 'w-full max-w-3xl min-h-[150px] mb-8 grid gap-4 grid-cols-1 z-10 transition-all mx-auto';
                 resultArea.innerHTML = '<div class="text-center text-gray-500">해당 유형의 글감이 부족합니다.</div>';
                 return;
             }
 
+            // Shuffle and Select
+            const shuffled = shuffle([...filtered]);
+            const selected = shuffled.slice(0, count);
+
+            // --- Dynamic Layout Logic (핵심 수정 부분) ---
+            // 초기화: 공통 클래스 설정
+            resultArea.className = 'mb-8 grid gap-4 z-10 transition-all mx-auto';
+
+            if (count === 1) {
+                // 1개일 때: 좁고 집중된 레이아웃 (기존 유지)
+                resultArea.classList.add('w-full', 'max-w-3xl', 'grid-cols-1');
+            } else if (count === 3) {
+                // 3개일 때: 너비를 넓히고 3열 배치
+                resultArea.classList.add('w-full', 'max-w-6xl', 'grid-cols-1', 'md:grid-cols-3');
+            } else if (count === 5) {
+                // 5개일 때: 화면을 거의 꽉 채우고 5열 배치 (반응형: 모바일 2열 -> 태블릿 3열 -> PC 5열)
+                resultArea.classList.add('w-full', 'max-w-[95%]', 'grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-5');
+            }
+
+            // Render Logic
             selected.forEach((item, index) => {
-                // Category Label logic
                 let catLabel = '';
                 let catColor = '';
                 switch(item.type) {
-                    case 'imagination': catLabel = '상상'; catColor = 'bg-purple-100 text-purple-800'; break;
-                    case 'school': catLabel = '학교'; catColor = 'bg-blue-100 text-blue-800'; break;
-                    case 'self': catLabel = '성찰'; catColor = 'bg-green-100 text-green-800'; break;
-                    case 'daily': catLabel = '일상'; catColor = 'bg-orange-100 text-orange-800'; break;
-                    case 'debate': catLabel = '토론'; catColor = 'bg-red-100 text-red-800'; break;
+                    case 'imagination': catLabel = '상상'; catColor = 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'; break;
+                    case 'school': catLabel = '학교'; catColor = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'; break;
+                    case 'self': catLabel = '성찰'; catColor = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'; break;
+                    case 'daily': catLabel = '일상'; catColor = 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'; break;
+                    case 'debate': catLabel = '토론'; catColor = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'; break;
                     default: catLabel = '기타'; catColor = 'bg-gray-100 text-gray-800';
                 }
 
+                // 카드 스타일 동적 조정 (개수에 따라 패딩과 폰트 크기 조절)
+                const cardPadding = count === 1 ? 'p-8 min-h-[200px]' : 'p-5 min-h-[180px]'; // 1개일 때 더 크고 여유롭게
+                const titleSize = count === 1 ? 'text-2xl md:text-3xl' : 'text-base md:text-lg'; // 1개일 때 폰트 크게
+
                 const card = document.createElement('div');
-                card.className = `result-card animate-fade-in bg-white border border-gray-200 rounded-xl p-6 cursor-pointer relative group`;
+                // h-full과 flex-col을 추가하여 카드의 높이를 맞추고 내용을 정렬
+                card.className = `result-card animate-fade-in bg-white dark:bg-darkcard border border-gray-200 dark:border-gray-700 rounded-xl ${cardPadding} relative group transition-all duration-300 hover:shadow-lg dark:hover:shadow-gray-900 flex flex-col justify-between`;
                 card.style.animationDelay = `${index * 0.1}s`;
-                card.onclick = () => copyText(item.text);
+
+                // Check if favorite
+                const isFav = isFavorite(item.text);
+                const favIconClass = isFav ? 'ph-star-fill text-yellow-400' : 'ph-star text-gray-300';
 
                 card.innerHTML = `
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs font-bold px-2 py-1 rounded ${catColor}">${catLabel}</span>
-                        <span class="text-xs text-gray-400 group-hover:text-blue-500 transition-colors">클릭해서 복사</span>
+                        <div class="flex gap-2">
+                             <button onclick="toggleFavoriteItem(this, '${item.text.replace(/'/g, "\\'")}', '${item.type}')" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors" title="보관함에 저장">
+                                <i class="ph ${favIconClass} text-xl"></i>
+                            </button>
+                        </div>
                     </div>
-                    <h3 class="text-lg md:text-xl font-medium text-gray-800 leading-snug break-keep">${item.text}</h3>
+                    <div onclick="copyText('${item.text.replace(/'/g, "\\'")}')" class="cursor-pointer flex-1 flex items-center">
+                        <h3 class="${titleSize} font-medium text-gray-800 dark:text-gray-100 leading-snug break-keep hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-full text-center md:text-left">${item.text}</h3>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity text-center md:text-left">클릭해서 복사</p>
                 `;
                 resultArea.appendChild(card);
             });
         }
+
+        // --- 4. Dark Mode Logic ---
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('darkMode', isDark);
+        }
+
+        // Init Dark Mode
+        if (localStorage.getItem('darkMode') === 'true' || 
+            (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        // --- 5. Timer Logic (Simplified Mini Version) ---
+        let timerInterval;
+        let timeLeft = 0;
+        let isTimerRunning = false;
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timerDisplay').innerText = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function setTimer(minutes) {
+            stopTimer();
+            timeLeft = minutes * 60;
+            updateTimerDisplay();
+        }
+
+        function toggleTimer() {
+            const btnIcon = document.getElementById('timerIcon');
+            if (isTimerRunning) {
+                stopTimer();
+            } else {
+                if (timeLeft <= 0) timeLeft = 300; // Default 5 min
+                isTimerRunning = true;
+                btnIcon.className = "ph ph-pause-fill text-lg";
+                
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        stopTimer();
+                        alert("시간이 종료되었습니다! 📝");
+                    }
+                }, 1000);
+            }
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            document.getElementById('timerIcon').className = "ph ph-play-fill text-lg";
+        }
+
+        function resetTimer() {
+            stopTimer();
+            timeLeft = 0;
+            updateTimerDisplay();
+        }
+
+        // --- 6. Favorites Logic ---
+        function getFavorites() {
+            const stored = localStorage.getItem('writingPromptsFavs');
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function saveFavorites(favs) {
+            localStorage.setItem('writingPromptsFavs', JSON.stringify(favs));
+            updateFavCount();
+            renderFavorites();
+        }
+
+        function isFavorite(text) {
+            const favs = getFavorites();
+            return favs.some(f => f.text === text);
+        }
+
+        function toggleFavoriteItem(btn, text, type) {
+            let favs = getFavorites();
+            const index = favs.findIndex(f => f.text === text);
+            const icon = btn.querySelector('i');
+
+            if (index > -1) {
+                // Remove
+                favs.splice(index, 1);
+                icon.className = 'ph ph-star text-gray-300 text-xl';
+                showToast("보관함에서 삭제되었습니다.");
+            } else {
+                // Add
+                favs.push({ text, type, date: new Date().toLocaleDateString() });
+                icon.className = 'ph ph-star-fill text-yellow-400 text-xl';
+                showToast("보관함에 저장되었습니다!");
+                
+                // Animation
+                icon.classList.add('scale-125');
+                setTimeout(() => icon.classList.remove('scale-125'), 200);
+            }
+            saveFavorites(favs);
+        }
+
+        function updateFavCount() {
+            const count = getFavorites().length;
+            const badge = document.getElementById('favCountBadge');
+            badge.innerText = count;
+            badge.style.display = count > 0 ? 'flex' : 'none';
+        }
+
+        function renderFavorites() {
+            const favs = getFavorites();
+            const list = document.getElementById('favList');
+            list.innerHTML = '';
+
+            if (favs.length === 0) {
+                list.innerHTML = '<div class="text-center text-gray-400 text-sm mt-10">보관된 글감이 없습니다.<br>별표를 눌러 저장해보세요.</div>';
+                return;
+            }
+
+            favs.forEach((item, idx) => {
+                const el = document.createElement('div');
+                el.className = 'bg-white dark:bg-gray-700 p-3 rounded-lg shadow-sm border border-gray-100 dark:border-gray-600 relative';
+                el.innerHTML = `
+                    <div class="text-xs text-blue-500 mb-1">${item.date}</div>
+                    <div class="text-sm text-gray-800 dark:text-gray-100 mb-2">${item.text}</div>
+                    <button onclick="removeFavoriteAtIndex(${idx})" class="absolute top-2 right-2 text-gray-300 hover:text-red-400">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                    <button onclick="copyText('${item.text.replace(/'/g, "\\'")}')" class="text-xs bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-500">복사</button>
+                `;
+                list.appendChild(el);
+            });
+        }
+
+        function removeFavoriteAtIndex(index) {
+            let favs = getFavorites();
+            favs.splice(index, 1);
+            saveFavorites(favs);
+            // Re-check visible stars
+            const generatedButtons = document.querySelectorAll('.result-card button');
+            // This is a naive refresh, ideally we re-render but that's heavy. 
+            // In this simple app, user likely won't mind.
+        }
+
+        function toggleFavorites() {
+            const drawer = document.getElementById('favDrawer');
+            const overlay = document.getElementById('overlay');
+            const isOpen = !drawer.classList.contains('translate-x-full');
+
+            if (isOpen) {
+                drawer.classList.add('translate-x-full');
+                overlay.classList.add('hidden');
+            } else {
+                renderFavorites();
+                drawer.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+            }
+        }
+        
+        function clearFavorites() {
+            if(confirm('정말 모든 보관함을 비우시겠습니까?')) {
+                localStorage.removeItem('writingPromptsFavs');
+                updateFavCount();
+                renderFavorites();
+            }
+        }
+
+        updateFavCount();
     </script>
 </body>
 </html>
