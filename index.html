@@ -60,33 +60,25 @@
         }
     </style>
 </head>
-<body class="bg-white text-gray-800 dark:bg-darkbg dark:text-darktext min-h-screen flex flex-col items-center py-4 px-4 relative overflow-x-hidden">
+<!-- h-screen과 overflow-hidden으로 화면 고정 -->
+<body class="bg-white text-gray-800 dark:bg-darkbg dark:text-darktext h-screen w-screen flex flex-col items-center py-2 px-4 relative overflow-hidden">
 
-    <!-- Top Left: Timer (Collapsible with Custom Input) -->
+    <!-- Top Left: Timer -->
     <div class="absolute top-4 left-4 z-50 flex items-center bg-white dark:bg-gray-800 rounded-full shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <!-- Toggle Button -->
         <button onclick="toggleTimerPanel()" class="p-2.5 text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors z-20 relative bg-white dark:bg-gray-800">
             <i class="ph ph-clock-countdown text-2xl"></i>
         </button>
-        
-        <!-- Hidden Controls -->
         <div id="timerControlPanel" class="max-w-0 opacity-0 flex items-center gap-2 overflow-hidden pr-0 bg-white dark:bg-gray-800 h-full">
             <div class="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1"></div>
             <div id="timerDisplay" class="font-mono font-bold text-gray-700 dark:text-gray-200 text-lg w-14 text-center">00:00</div>
-            
-            <!-- Preset Buttons -->
             <div class="flex gap-1 text-[10px] font-bold">
                 <button onclick="setTimer(5)" class="px-2 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">5분</button>
                 <button onclick="setTimer(10)" class="px-2 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">10분</button>
             </div>
-
-            <!-- Custom Input -->
             <div class="flex items-center gap-1 ml-1 border-l border-gray-200 dark:border-gray-700 pl-2">
                 <input type="number" id="customMinInput" class="w-8 p-1 text-[11px] border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-center focus:outline-none focus:ring-1 focus:ring-blue-500 dark:text-white" placeholder="분">
                 <button onclick="setCustomTimer()" class="px-1.5 py-1 text-[10px] bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded hover:bg-blue-200 dark:hover:bg-blue-800 font-bold whitespace-nowrap">설정</button>
             </div>
-
-            <!-- Play Controls -->
             <div class="flex items-center gap-1 ml-1 border-l border-gray-200 dark:border-gray-700 pl-2 pr-2">
                 <button id="timerToggleBtn" onclick="toggleTimer()" class="p-1 text-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-full transition-colors" title="시작/정지">
                     <i id="timerIcon" class="ph ph-play-fill text-xl"></i>
@@ -98,7 +90,7 @@
         </div>
     </div>
 
-    <!-- Top Right: Dark Mode & Favorites -->
+    <!-- Top Right: Buttons -->
     <div class="absolute top-4 right-4 flex gap-2 z-50">
         <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="다크 모드">
             <i class="ph ph-moon text-2xl dark:hidden"></i>
@@ -110,8 +102,8 @@
         </button>
     </div>
 
-    <!-- Header Logo (Reduced Margins) -->
-    <div class="flex flex-col items-center mt-12 mb-2 md:mt-14 md:mb-4 select-none z-10 shrink-0">
+    <!-- Header Logo: 여백 줄임, shrink-0으로 크기 유지 -->
+    <div class="flex flex-col items-center mt-14 mb-2 select-none z-10 shrink-0">
         <div class="logo-text text-4xl md:text-5xl transition-all duration-300">
             <span class="logo-blue">오</span><span class="logo-red">늘</span><span class="logo-yellow">의</span>
             <span class="logo-blue">글</span><span class="logo-green">감</span>
@@ -119,11 +111,10 @@
         <p class="text-gray-500 dark:text-gray-400 text-xs md:text-sm mt-1">학생들을 위한 아침 글쓰기 도우미</p>
     </div>
 
-    <!-- 1. Result Area (FIXED HEIGHT CONTAINER - REDUCED) -->
-    <!-- h-[340px]로 줄여서 버튼이 위로 올라오도록 조정 -->
-    <div id="resultContainer" class="w-full max-w-6xl h-[340px] mb-2 z-10 mx-auto flex items-center justify-center p-2">
+    <!-- Result Area: flex-1으로 남는 공간 모두 차지, 자동 크기 조절 -->
+    <div id="resultContainer" class="w-full max-w-6xl flex-1 min-h-[150px] mb-2 z-10 mx-auto flex flex-col items-center justify-center p-2 relative">
         <div id="resultArea" class="w-full h-full grid gap-4 place-content-center transition-all">
-            <!-- Placeholder State -->
+            <!-- Placeholder -->
             <div class="flex flex-col items-center justify-center h-full w-full border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50/50 dark:bg-gray-800/50 p-6 text-center max-w-xl mx-auto">
                 <i class="ph ph-pencil-simple-slash text-3xl text-gray-300 dark:text-gray-600 mb-2"></i>
                 <p class="text-gray-400 dark:text-gray-500 text-sm">아래 <span class="text-blue-500 font-bold">글감 검색</span> 버튼을 눌러주세요.</p>
@@ -131,13 +122,12 @@
         </div>
     </div>
 
-    <!-- 2. Controls Area (Fixed Position Relative to Layout) -->
-    <div class="w-full max-w-2xl bg-white dark:bg-darkcard p-5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg z-20 shrink-0">
-        <div class="grid grid-cols-2 gap-4 mb-4">
-            <!-- Category Selection -->
+    <!-- Controls Area: 하단 고정, 여백 줄임 -->
+    <div class="w-full max-w-2xl bg-white dark:bg-darkcard p-4 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg z-20 shrink-0 mb-4">
+        <div class="grid grid-cols-2 gap-3 mb-3">
             <div class="flex flex-col">
                 <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 ml-1">주제 유형</label>
-                <select id="categorySelect" class="w-full p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                <select id="categorySelect" class="w-full p-2 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm cursor-pointer">
                     <option value="all">🎲 모든 주제 (랜덤)</option>
                     <option value="imagination">💭 풍부한 상상력</option>
                     <option value="school">🏫 학교와 친구들</option>
@@ -146,11 +136,9 @@
                     <option value="debate">⚖️ 찬반 토론</option>
                 </select>
             </div>
-
-            <!-- Count Selection -->
             <div class="flex flex-col">
                 <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 ml-1">생성 개수</label>
-                <select id="countSelect" class="w-full p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                <select id="countSelect" class="w-full p-2 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm cursor-pointer">
                     <option value="1" selected>1개 (집중)</option>
                     <option value="3">3개 (선택)</option>
                     <option value="5">5개 (다양하게)</option>
@@ -158,9 +146,8 @@
             </div>
         </div>
 
-        <!-- Generate Button -->
         <div class="flex justify-center">
-            <button onclick="generatePrompts()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 shadow-md text-lg active:scale-95 flex items-center justify-center gap-2">
+            <button onclick="generatePrompts()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2.5 rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 shadow-md text-base active:scale-95 flex items-center justify-center gap-2">
                 <i class="ph ph-magnifying-glass font-bold"></i> 글감 검색
             </button>
         </div>
@@ -513,7 +500,11 @@
             const selected = shuffled.slice(0, count);
 
             // --- Dynamic Class Assignment ---
-            // 높이 340px 박스 안에 꽉 차게 들어가는 로직
+            // Flex-1 container (resultContainer) automatically handles height.
+            // We just need to distribute items inside resultArea.
+            
+            // Grid layout within the flexible container
+            // Use 'h-full' if possible to fill vertical space, or center if few items.
             resultArea.className = 'w-full h-full grid gap-4 place-content-center px-4';
 
             if (count === 1) {
@@ -537,13 +528,14 @@
                     default: catLabel = '기타'; catColor = 'bg-gray-100 text-gray-800';
                 }
 
-                // 카드 스타일 동적 조정 (작은 폰트 - 높이 줄임에 따라 조정)
-                // 340px container height => 1 item: h-[300px], 3 items: h-[250px], 5 items: h-[160px]
-                const cardSizeClass = count === 1 ? 'p-8 h-[300px]' : (count === 3 ? 'p-5 h-[250px]' : 'p-3 h-[150px]');
+                // 카드 스타일 동적 조정 (유연한 높이)
+                // h-full: 부모 그리드 셀의 높이를 가득 채움
+                // max-h-[60vh]: 너무 길어지는 것 방지
+                const paddingClass = count === 1 ? 'p-8' : (count === 3 ? 'p-5' : 'p-3');
                 const titleSize = count === 1 ? 'text-2xl md:text-3xl' : (count === 3 ? 'text-lg' : 'text-xs md:text-sm font-bold');
                 
                 const card = document.createElement('div');
-                card.className = `result-card animate-fade-in bg-white dark:bg-darkcard border border-gray-200 dark:border-gray-700 rounded-xl ${cardSizeClass} relative group transition-all duration-300 hover:shadow-lg dark:hover:shadow-gray-900 flex flex-col justify-between overflow-hidden`;
+                card.className = `result-card animate-fade-in bg-white dark:bg-darkcard border border-gray-200 dark:border-gray-700 rounded-xl ${paddingClass} w-full h-full max-h-[60vh] relative group transition-all duration-300 hover:shadow-lg dark:hover:shadow-gray-900 flex flex-col justify-between overflow-hidden`;
                 card.style.animationDelay = `${index * 0.1}s`;
                 
                 // Check fav
@@ -551,7 +543,7 @@
                 const favIconClass = isFav ? 'ph-star-fill text-yellow-400' : 'ph-star text-gray-300';
 
                 card.innerHTML = `
-                    <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center justify-between mb-2 shrink-0">
                         <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${catColor}">${catLabel}</span>
                         <div class="flex gap-1">
                              <button onclick="toggleFavoriteItem(this, '${item.text.replace(/'/g, "\\'")}', '${item.type}')" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors" title="보관함에 저장">
@@ -559,10 +551,10 @@
                             </button>
                         </div>
                     </div>
-                    <div onclick="copyText('${item.text.replace(/'/g, "\\'")}')" class="cursor-pointer flex-1 flex items-center justify-center overflow-y-auto custom-scroll">
+                    <div onclick="copyText('${item.text.replace(/'/g, "\\'")}')" class="cursor-pointer flex-1 flex items-center justify-center overflow-y-auto custom-scroll min-h-0">
                         <h3 class="${titleSize} font-medium text-gray-800 dark:text-gray-100 leading-snug break-keep hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-full text-center">${item.text}</h3>
                     </div>
-                    ${count === 1 ? '<p class="text-xs text-gray-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity text-center">클릭해서 복사</p>' : ''}
+                    ${count === 1 ? '<p class="text-xs text-gray-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity text-center shrink-0">클릭해서 복사</p>' : ''}
                 `;
                 resultArea.appendChild(card);
             });
